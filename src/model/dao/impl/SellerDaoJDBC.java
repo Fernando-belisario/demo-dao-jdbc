@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.dao.SellerDao;
 import model.entities.Departament;
 import model.entities.Seller;
@@ -37,47 +35,67 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void insert(Seller obj) {
-        
+
         PreparedStatement st = null;
-        
-        try{
+
+        try {
             st = conn.prepareStatement(
                     "INSERT INTO seller "
-                    +"(Name, Email, BirthDate, BaseSalary, DepartmentId) "
-                    +"VALUES( ?,  ?,  ?,  ?,  ?)",
+                    + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+                    + "VALUES( ?,  ?,  ?,  ?,  ?)",
                     Statement.RETURN_GENERATED_KEYS);
-            
+
             st.setString(1, obj.getName());
             st.setString(2, obj.getEmail());
             st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
             st.setDouble(4, obj.getBaseSalary());
             st.setInt(5, obj.getDepartament().getId());
-            
+
             int rowsAffected = st.executeUpdate();
-            
-            if(rowsAffected > 0){
+
+            if (rowsAffected > 0) {
                 ResultSet rs = st.getGeneratedKeys();
-                if(rs.next()){
+                if (rs.next()) {
                     int id = rs.getInt(1);
                     obj.setId(id);
                 }
                 DB.closeResultSet(rs);
-            }else{
+            } else {
                 throw new DbException("Erro inespera");
             }
-            
+
         } catch (SQLException e) {
             throw new DbException(e.getMessage());
-        }finally{
+        } finally {
             DB.closeStatement(st);
         }
 
-        
     }
 
     @Override
     public void update(Seller obj) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        PreparedStatement st = null;
+
+        try {
+            st = conn.prepareStatement(
+                    "UPDATE seller "
+                    +"SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+                    +"WHERE id = ?");
+
+            st.setString(1, obj.getName());
+            st.setString(2, obj.getEmail());
+            st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+            st.setDouble(4, obj.getBaseSalary());
+            st.setInt(5, obj.getDepartament().getId());
+            st.setInt(6, obj.getId());
+
+            st.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(st);
+        }
     }
 
     @Override
